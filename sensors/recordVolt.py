@@ -98,7 +98,14 @@ def main():
                     fdname = now.strftime('%d%b%Y')
                     ftname = now.strftime('%H:%M:%S')
                 
+                
+                
+                
                     volt[isample] = ina.voltage()
+                    
+                    
+                    
+                    
                     print('volt',volt[isample],isample, voltNumSamples)
                     timestring = ("%d,%d,%d,%d,%d,%d" % (fnow.year,
                                                      fnow.month,
