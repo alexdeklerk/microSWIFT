@@ -3,20 +3,15 @@
 
 # Import Packages
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.io as sio
-from termcolor import colored
 print('Packages Loaded')
 
-# # Define random u and v
-# num_points = 240000
-# ran = 3
-# u = ran * np.random.random_sample(num_points) 
-# v = ran * np.random.random_sample(num_points) 
-# z = ran * np.random.random_sample(num_points) 
-# fs = 5
-
-# Read in Raw SWIFT Data
+# Define random u and v
+num_points = 2400
+waveHeight_range = 3
+u = waveHeight_range * np.random.random_sample(num_points) 
+v = waveHeight_range * np.random.random_sample(num_points) 
+z = waveHeight_range * np.random.random_sample(num_points) 
+fs = 4
 
 # Run the GPSwaves.py function
 from GPSwaves import GPSwaves
