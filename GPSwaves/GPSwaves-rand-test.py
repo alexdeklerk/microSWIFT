@@ -7,7 +7,9 @@ print('Packages Loaded')
 
 # Define random u and v
 num_points = 2400
+badValue=999
 waveHeight_range = 3
+
 u = waveHeight_range * np.random.random_sample(num_points) 
 v = waveHeight_range * np.random.random_sample(num_points) 
 z = waveHeight_range * np.random.random_sample(num_points) 
