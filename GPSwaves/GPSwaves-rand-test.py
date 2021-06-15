@@ -15,6 +15,11 @@ v = waveHeight_range * np.random.random_sample(num_points)
 z = waveHeight_range * np.random.random_sample(num_points) 
 fs = 4
 
+np.squeeze(u)
+np.squeeze(v)
+np.squeeze(z)
+
+
 # Run the GPSwaves.py function
 from GPSwaves import GPSwaves
 Hs, Tp, Dp, E, f, a1, b1, a2, b2 = GPSwaves(u, v, z, fs)
