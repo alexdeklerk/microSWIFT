@@ -51,6 +51,7 @@ def cumtrapz(y, x=None, dx=1.0, axis=-1, initial=None):
     >>> plt.show()
 
     """
+    import numpy as np
 
     y = np.asarray(y)
     if x is None:

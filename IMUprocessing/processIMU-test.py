@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io as sio
 from termcolor import colored
+from importlib import reload
 print('Packages Loaded')
 
 # Import Test Data and Test Output
@@ -43,8 +44,9 @@ yaw_t = test_data['yaw']
 heading_t = test_data['heading']
 
 # Run IMUtoXYZ.py function
-from IMUtoXYZ import IMUtoXYZ
-x, y, z, roll, pitch, yaw, heading = IMUtoXYZ(ax, ay, az, gx, gy, gz, mx, my, mz, mxo, myo, mzo, Wd, fs)
+import IMUtoXYZ
+reload(IMUtoXYZ)
+x, y, z, roll, pitch, yaw, heading = IMUtoXYZ.IMUtoXYZ(ax, ay, az, gx, gy, gz, mx, my, mz, mxo, myo, mzo, Wd, fs)
 
 # Test Output for the IMUtoXYZ function
 precision = 1

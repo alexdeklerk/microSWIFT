@@ -1,8 +1,4 @@
 # IMUtoXYZ
-from matplotlib.pyplot import thetagrids
-from numpy import deg2rad
-
-
 def IMUtoXYZ(ax, ay, az, gx, gy, gz, mx, my, mz, mxo, myo, mzo, Wd, fs):
     """
     Function to calculate wave displacements in earth reference frame 
@@ -34,7 +30,101 @@ def IMUtoXYZ(ax, ay, az, gx, gy, gz, mx, my, mz, mxo, myo, mzo, Wd, fs):
     """
     # Import Statements
     import numpy as np
-    from scipy import integrate
+    # Define tupleset which is a subroutine function used in scipy's cumtrapz function
+    def tupleset(t, i, value):
+        l = list(t)
+        l[i] = value
+        return tuple(l)
+
+    # Define cumtrapz function from scipy source code
+    def cumtrapz(y, x=None, dx=1.0, axis=-1, initial=None): 
+        """
+        Cumulatively integrate y(x) using the composite trapezoidal rule.
+
+        Parameters
+        ----------
+        y : array_like
+            Values to integrate.
+        x : array_like, optional
+            The coordinate to integrate along. If None (default), use spacing `dx`
+            between consecutive elements in `y`.
+        dx : float, optional
+            Spacing between elements of `y`. Only used if `x` is None.
+        axis : int, optional
+            Specifies the axis to cumulate. Default is -1 (last axis).
+        initial : scalar, optional
+        If given, insert this value at the beginning of the returned result.
+        Typically this value should be 0. Default is None, which means no
+        value at ``x[0]`` is returned and `res` has one element less than `y`
+        along the axis of integration.
+            See Also
+        --------
+        numpy.cumsum, numpy.cumprod
+        quad: adaptive quadrature using QUADPACK
+        romberg: adaptive Romberg quadrature
+        quadrature: adaptive Gaussian quadrature
+        fixed_quad: fixed-order Gaussian quadrature
+        dblquad: double integrals
+        tplquad: triple integrals
+        romb: integrators for sampled data
+        ode: ODE integrators
+        odeint: ODE integrators
+        Returns
+        -------
+        res : ndarray
+            The result of cumulative integration of `y` along `axis`.
+            If `initial` is None, the shape is such that the axis of integration
+            has one less value than `y`. If `initial` is given, the shape is equal
+            to that of `y`.
+
+        Examples
+        --------
+        >>> from scipy import integrate
+        >>> import matplotlib.pyplot as plt
+
+        >>> x = np.linspace(-2, 2, num=20)
+        >>> y = x
+        >>> y_int = integrate.cumtrapz(y, x, initial=0)
+        >>> plt.plot(x, y_int, 'ro', x, y[0] + 0.5 * x**2, 'b-')
+        >>> plt.show()
+
+        """
+        y = np.asarray(y)
+        if x is None:
+            d = dx
+        else:
+            x = np.asarray(x)
+            if x.ndim == 1:
+                d = np.diff(x)
+                # reshape to correct shape
+                shape = [1] * y.ndim
+                shape[axis] = -1
+                d = d.reshape(shape)
+            elif len(x.shape) != len(y.shape):
+                raise ValueError("If given, shape of x must be 1-D or the "
+                                "same as y.")
+            else:
+                d = np.diff(x, axis=axis)
+
+            if d.shape[axis] != y.shape[axis] - 1:
+                raise ValueError("If given, length of x along axis must be the "
+                                "same as y.")
+
+        nd = len(y.shape)
+        slice1 = tupleset((slice(None),)*nd, axis, slice(1, None))
+        slice2 = tupleset((slice(None),)*nd, axis, slice(None, -1))
+        res = np.cumsum(d * (y[slice1] + y[slice2]) / 2.0, axis=axis)
+
+        if initial is not None:
+            if not np.isscalar(initial):
+                raise ValueError("`initial` parameter should be a scalar.")
+
+            shape = list(res.shape)
+            shape[axis] = 1
+            res = np.concatenate([np.full(shape, initial, dtype=res.dtype), res],
+                                axis=axis)
+
+        return res
 
     # Weighting from (0 to 1) for static angles in complimentary filter
     Ws = 1 - Wd
@@ -61,11 +151,11 @@ def IMUtoXYZ(ax, ay, az, gx, gy, gz, mx, my, mz, mxo, myo, mzo, Wd, fs):
 
     # Dynamic Angles
     if Wd != 0:
-        dynamicroll_unfilt = integrate.cumtrapz(gx, dx=dt, axis=0) # time integrate x rotations to get dynamic roll
+        dynamicroll_unfilt = cumtrapz(gx, dx=dt, axis=0) # time integrate x rotations to get dynamic roll
         dynamicroll = RCfilter(dynamicroll_unfilt, RC, fs)
-        dynamicpitch_unfilt = integrate.cumtrapz(gy, dx=dt, axis=0) # time integrate y rotations to get dynamic pitch
+        dynamicpitch_unfilt = cumtrapz(gy, dx=dt, axis=0) # time integrate y rotations to get dynamic pitch
         dynamicpitch = RCfilter(dynamicpitch_unfilt, RC, fs)
-        dynamicyaw_unfilt = integrate.cumtrapz(gz, dx=dt, axis=0) # time integrate z rotations to get dynamic yaw
+        dynamicyaw_unfilt = cumtrapz(gz, dx=dt, axis=0) # time integrate z rotations to get dynamic yaw
         dynamicyaw = RCfilter(dynamicyaw_unfilt, RC, fs)
     else:
         dynamicroll = np.zeros(gx.shape)
@@ -139,9 +229,9 @@ def IMUtoXYZ(ax, ay, az, gx, gy, gz, mx, my, mz, mxo, myo, mzo, Wd, fs):
     az = RCfilter(az, RC, fs)
 
     # Integrate 
-    vx = integrate.cumtrapz(ax, dx=dt, axis=0)
-    vy = integrate.cumtrapz(ay, dx=dt, axis=0)
-    vz = integrate.cumtrapz(az, dx=dt, axis=0)
+    vx = cumtrapz(ax, dx=dt, axis=0, initial=0)
+    vy = cumtrapz(ay, dx=dt, axis=0, initial=0)
+    vz = cumtrapz(az, dx=dt, axis=0, initial=0)
 
     # # Remove rotation-induced velocites from total velocity 
     # vx = vx - vxr
@@ -149,16 +239,18 @@ def IMUtoXYZ(ax, ay, az, gx, gy, gz, mx, my, mz, mxo, myo, mzo, Wd, fs):
     # vz = vz - vzr
 
     # Determine geographic heading and correct horizontal velocities to East, North
-    heading = np.rad2deg(np.arctan2(my + myo, mx + mxo))
-    heading[heading < 0] = 360+heading[heading < 0]
+    heading = np.rad2deg(np.arctan2((my + myo), (mx + mxo)))
+    indices = np.where(heading < 0)
+    heading[indices, 0] = 360+heading[indices, 0]
     theta = -(heading - 90) # Cartesian CCW heading from geographic CW heading 
+    print(theta.shape)
 
     # Compute east and north velocity components
     u = vx.copy() # x-direction, horizontal in earth frame but relative in azimuth
-    print(u.shape)
     v = vy.copy() # y direction, horizontal in earth frame but relative in azimuth
-    print(v.shape)
-    vx = u * np.cos(np.deg2rad(theta)) - v * np.sin(np.deg2rad(theta)) # east component
+    print(u.shape)
+    print(np.cos(np.deg2rad(theta)).shape)
+    vx = (u * np.cos(np.deg2rad(theta))) - (v * np.sin(np.deg2rad(theta))) # east component
     vy = u * np.sin(np.deg2rad(theta)) + v * np.cos(np.deg2rad(theta)) # north component
 
     # Demean, Filter and integrate Velocity to get displacement
@@ -173,9 +265,9 @@ def IMUtoXYZ(ax, ay, az, gx, gy, gz, mx, my, mz, mxo, myo, mzo, Wd, fs):
     vz = RCfilter(vz, RC, fs)
 
     # Integrate
-    x = integrate.cumtrapz(vx, dx=dt, axis=0)
-    y = integrate.cumtrapz(vy, dx=dt, axis=0)
-    z = integrate.cumtrapz(vz, dx=dt, axis=0)
+    x = cumtrapz(vx, dx=dt, axis=0, initial=0)
+    y = cumtrapz(vy, dx=dt, axis=0, initial=0)
+    z = cumtrapz(vz, dx=dt, axis=0, initial=0)
 
     # Demean annd filter final signal
     x = RCfilter(x, RC, fs)
