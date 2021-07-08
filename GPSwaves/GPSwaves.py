@@ -22,14 +22,14 @@ def GPSwaves(u, v, z, fs):
     a2 : 
     b2 : 
     
-    Filtering Technique: 
+    Filtering Technique: RC filter 
 
 
     """
 
     # Packages
     import numpy as np
-    # import scipy.signal as signal
+    import scipy.signal as signal
     import numpy.fft as fft
 
     # Define demean function
@@ -102,22 +102,30 @@ def GPSwaves(u, v, z, fs):
     v = demean(v)
     z = demean(z)
 
-    # Define alpha for filter
-    alpha = RC / (RC + 1/fs)
+    # # Define alpha for filter
+    # alpha = RC / (RC + 1/fs)
 
-    # Filter each signal
-    ufiltered = u.copy()
-    vfiltered = v.copy()
-    zfiltered = z.copy()
-    for i in np.arange(1, len(u)):
-        ufiltered[i] = alpha * ufiltered[i-1] + alpha * ( u[i] - u[i-1] )
-        vfiltered[i] = alpha * vfiltered[i-1] + alpha * ( v[i] - v[i-1] )
-        zfiltered[i] = alpha * zfiltered[i-1] + alpha * ( z[i] - z[i-1] )
+    # # Filter each signal
+    # ufiltered = u.copy()
+    # vfiltered = v.copy()
+    # zfiltered = z.copy()
+    # for i in np.arange(1, len(u)):
+    #     ufiltered[i] = alpha * ufiltered[i-1] + alpha * ( u[i] - u[i-1] )
+    #     vfiltered[i] = alpha * vfiltered[i-1] + alpha * ( v[i] - v[i-1] )
+    #     zfiltered[i] = alpha * zfiltered[i-1] + alpha * ( z[i] - z[i-1] )
 
-    # Redefine the values as the filtered values
-    u = ufiltered.copy()
-    v = vfiltered.copy()
-    z = zfiltered.copy()
+    # # Redefine the values as the filtered values
+    # u = ufiltered.copy()
+    # v = vfiltered.copy()
+    # z = zfiltered.copy()
+
+    # Construct high-pass butterworth filter 
+    sos = signal.butter(N=10, Wn=0.009, btype='hp', fs=fs, output='sos')
+
+    # Filter u, v, and z signals
+    u = signal.sosfilt(sos, u)
+    v = signal.sosfilt(sos, v)
+    z = signal.sosfilt(sos, z)
 
     # ---------------- Break Data into Windows ------------------
     # Windows have 75% Overlap 
