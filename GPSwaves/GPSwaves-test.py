@@ -92,3 +92,11 @@ if(np.abs(np.linalg.norm(b2)-np.linalg.norm(b2_t)) <= precision ):
 else:
     print(colored('b2 Test Failed, norm(b2) = ' + str(np.linalg.norm(b2)) + ', norm(b2_t) = ' + str(np.linalg.norm(b2_t)), 'red'))
 
+# Plot difference in spectra between butterworth and RC filter
+fig_filt, ax = plt.subplots()
+ax.loglog(f, E, label='Butterworth')
+ax.loglog(f, E_t, label='RC filter')
+ax.set_xlabel('Frequency [Hz]')
+ax.set_ylabel('Variance Density [m^2/Hz]')
+ax.legend()
+plt.show()
