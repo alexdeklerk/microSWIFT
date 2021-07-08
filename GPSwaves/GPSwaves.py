@@ -120,7 +120,7 @@ def GPSwaves(u, v, z, fs):
     # z = zfiltered.copy()
 
     # Construct high-pass butterworth filter 
-    sos = signal.butter(N=10, Wn=0.009, btype='hp', fs=fs, output='sos')
+    sos = signal.iirfilter(N=10, Wn=0.009, btype='hp', fs=fs, ftype='butter', output='sos')
 
     # Filter u, v, and z signals
     u = signal.sosfilt(sos, u)
