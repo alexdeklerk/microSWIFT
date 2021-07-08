@@ -9,7 +9,7 @@ from termcolor import colored
 print('Packages Loaded')
 
 # Import Test Data and Test Output
-test_data = sio.loadmat('IMU-testdata.mat')
+test_data = sio.loadmat('IMUtoXYZ-testdata.mat')
 
 # Organize data into each component from .mat file
 # Accelarations
@@ -30,7 +30,7 @@ myo = test_data['myo']
 mzo = test_data['mzo']
 # Weight Factor and sampling frequency
 Wd = test_data['Wd']
-fs = test_data['IMUsamplingrate']
+fs = test_data['fs']
 
 # Define output from MATLAB function to compare to 
 # all are suffized with _t for "true" value
