@@ -9,7 +9,7 @@ from termcolor import colored
 print('Packages Loaded')
 
 # Import Test Data and Test Output
-test_data = sio.loadmat('IMUtoXYZ-testdata.mat')
+test_data = sio.loadmat('IMU-testdata.mat')
 
 # Organize data into each component from .mat file
 # Accelarations
